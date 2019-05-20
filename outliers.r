@@ -14,5 +14,22 @@ outlier_range = boxplot(df$x,coef =2)
  min = outlier_range$stats[1]
 
 #removing outliers by restricting the data within the range
-df = subset(df,x>=min &x<=max)
+df1 = subset(df,x>=min &x<=max)
 
+#bivariate approach
+
+#cook's distance
+#Data points with large residuals (outliers) and/or high leverage may distort the outcome and accuracy of a regression. 
+#Cook's distance measures the effect of deleting a given observation. 
+#Points with a large Cook's distance are considered to merit closer examination in the analysis.
+
+mod <- lm(x ~ y, data=df)
+cooksd <- cooks.distance(mod)
+plot(cooksd, pch="*", cex=2, main="Influential Obs")
+abline(h = 4*mean(cooksd, na.rm=T), col="red")  #cutoff line
+text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>4*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
+influential <- as.numeric(names(cooksd)[(cooksd > 4*mean(cooksd, na.rm=T))])
+outliers = df[influential, ]
+df1 = df[-influential, ] #final data after removing outliers
+
+#reference -http://r-statistics.co/Outlier-Treatment-With-R.html
